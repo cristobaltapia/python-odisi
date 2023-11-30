@@ -1,6 +1,6 @@
 import numpy as np
 import polars as pl
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 
 
 class OdisiResult:
@@ -31,13 +31,13 @@ class OdisiResult:
         self.data: pl.DataFrame = data
         self.gages: list = []
         self.segments: list = []
-        self._x: ArrayLike = x
+        self._x: NDArray = x
         self._channel: int = int(metadata["Channel"])
         self._rate: float = float(metadata["Measurement Rate per Channel"][:-3])
         self._gage_pitch: float = float(metadata["Gage Pitch (mm)"])
 
     @property
-    def x(self) -> ArrayLike:
+    def x(self) -> NDArray:
         return self._x
 
     @property
@@ -53,8 +53,8 @@ class OdisiResult:
         return self._gage_pitch
 
     @property
-    def time(self):
-        return self.data.select(pl.col("time"))
+    def time(self) -> NDArray:
+        return self.data.select(pl.col("time")).to_numpy().flatten()
 
     def gage(self, name: str):
         """Get data corresponding to the given gauge.
