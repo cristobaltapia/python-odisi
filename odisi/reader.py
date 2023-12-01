@@ -46,7 +46,6 @@ def read_tsv(path: str | Path) -> OdisiResult:
     time = df.rename({df.columns[0]: "time"}).select(pl.col("time"))
     # Cast as floats
     data = df[:, 3:].with_columns(cs.matches(r"\d").cast(float))
-    # df = df.drop(cs.string())
     df = pl.concat([time, data], how="horizontal")
 
     # Read the x-coordinate information

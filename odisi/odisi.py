@@ -1,6 +1,7 @@
 import numpy as np
 import polars as pl
 from numpy.typing import ArrayLike, NDArray
+import pdb
 
 
 class OdisiResult:
@@ -98,20 +99,46 @@ class OdisiResult:
         """
         pass
 
-    def sync(self, time: ArrayLike):
-        """TODO: Docstring for sync.
+    def interpolate(self, time: ArrayLike | pl.DataFrame, keep_sample_rate=False):
+        """Interpolate the sensor data to match the timestamp of the given array.
+
+        This method assumes that
 
         Parameters
         ----------
-        time : TODO
+        time : ArrayLike | pl.DataFrame
+            Array with the time used to interpolate the sensor data.
+        keep_sample_rate : bool
+            Whether the sample rate of the original sensor data should be preserved.
 
         Returns
         -------
         TODO
 
         """
-        # Update self._rate
-        pass
+        data = self.data
+
+        # Ensure the correct name for the column
+        if isinstance(time, pl.DataFrame):
+            time = time.rename({time.columns[0]: "time"})
+        # Convert time to polars DataFrame if needed
+        else:
+            time = pl.DataFrame({"time": time})
+
+        aux, _ = pl.align_frames(data, time, on="time")
+
+        # Interpolate data
+        df_sync = aux.interpolate()
+
+        # Now get only the data associated to the load data
+        ix_load = [k[0] in time[:, 0] for k in df_sync.select("time").iter_rows()]
+        df_sync = df_sync.filter(ix_load)
+
+        # TODO: Update self._rate
+        self._rate = (df_sync[1, 0] - df_sync[0, 0]).total_seconds()
+        self.data = df_sync
+
+        return self.data
 
 
 class OdisiGagesResult(OdisiResult):

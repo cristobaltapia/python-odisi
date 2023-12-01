@@ -33,15 +33,15 @@ class TestData:
 
     def test_data_full(self):
         data = DATA_FULL.data[0, 1:6].to_numpy()[0]
-        v = [0.1, -1.2, -2.4, -2.8, -5]
+        v = [3.7, -5.5, 2.8, 2.9, -2.3]
         assert_almost_equal(data, v)
 
     def test_time_full(self):
         t = DATA_FULL.time
         real_time = [
-            "2023-09-06 11:44:02.801931",
-            "2023-09-06 11:44:03.602401",
-            "2023-09-06 11:44:04.402870",
+            "2023-09-06 12:51:28.888946",
+            "2023-09-06 12:51:29.689415",
+            "2023-09-06 12:51:30.489885",
         ]
         r = np.array(
             [datetime.fromisoformat(k) for k in real_time],
