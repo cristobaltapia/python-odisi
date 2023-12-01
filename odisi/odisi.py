@@ -145,7 +145,7 @@ class OdisiGagesResult(OdisiResult):
 
     """Docstring ."""
 
-    def __init__(self, segments):
+    def __init__(self, data, x, gages, metadata):
         """TODO: to be defined.
 
         Parameters
@@ -154,7 +154,8 @@ class OdisiGagesResult(OdisiResult):
 
 
         """
-        self._segments = segments
+        super().__init__(data, x, metadata)
+        self._gages = gages
 
     def _split_gages(self):
         """TODO: Docstring for _split_gages.
