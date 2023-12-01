@@ -7,9 +7,10 @@ from numpy.testing import assert_almost_equal, assert_array_equal
 from odisi import read_tsv
 
 DATA_FULL = read_tsv("tests/data/verification_data_ch1_full.tsv")
+DATA_GAGES = read_tsv("tests/data/verification_data_ch1_gages.tsv")
 
 
-class TestMetadata:
+class TestMetadataFull:
     def test_channel(self):
         assert DATA_FULL.channel == 1
 
@@ -18,6 +19,16 @@ class TestMetadata:
 
     def test_gage_pitch(self):
         assert DATA_FULL.gage_pitch == 0.65
+
+class TestMetadataGages:
+    def test_channel(self):
+        assert DATA_GAGES.channel == 1
+
+    def test_rate(self):
+        assert DATA_GAGES.rate == 1.25
+
+    def test_gage_pitch(self):
+        assert DATA_GAGES.gage_pitch == 0.65
 
 
 class TestData:
