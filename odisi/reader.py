@@ -21,11 +21,28 @@ def read_tsv(path: str | Path) -> OdisiResult:
     odisi : obj:`OdisiResult`
 
     """
-    # TODO: determine if file has segments defined
+    info = []
 
     # Read relevant metadata
     with open(path, "r") as f:
-        info = [f.readline().split(":") for _ in range(30)]
+        # Initialize counter for the lines
+        n_meta = 0
+        # Look for the end of the metadata block
+        while True:
+            s = f.readline()
+            n_meta += 1
+
+            if s[:5] != "-----":
+                # Append metadata to the list
+                info.append(s.split(":"))
+            else:
+                break
+
+    # Determine if file has segments defined
+    if n_meta == 31:
+        with_gages = False
+    else:
+        with_gages = True
 
     # Initialize dictionary to store metadata
     metadata = {}
@@ -37,7 +54,7 @@ def read_tsv(path: str | Path) -> OdisiResult:
     df = pl.read_csv(
         path,
         has_header=False,
-        skip_rows=31,
+        skip_rows=n_meta,
         skip_rows_after_header=2,
         separator="\t",
         try_parse_dates=True,
