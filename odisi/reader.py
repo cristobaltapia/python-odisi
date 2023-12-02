@@ -67,7 +67,6 @@ def read_tsv(path: str | Path) -> OdisiResult:
         path,
         has_header=False,
         skip_rows=n_skip,
-        skip_rows_after_header=2,
         separator="\t",
         try_parse_dates=True,
     )
@@ -76,7 +75,8 @@ def read_tsv(path: str | Path) -> OdisiResult:
     time = df.rename({df.columns[0]: "time"}).select(pl.col("time"))
 
     # Cast as floats
-    data = df[:, 3:].with_columns(cs.matches(r"\d").cast(float))
+    data = df[:, 3:].with_columns(cs.all().cast(float))
+    # We only use the time and data columns (not the strain and measurement ones)
     df = pl.concat([time, data], how="horizontal")
 
     # Get line number for the x-coordinate
@@ -103,7 +103,7 @@ def read_tsv(path: str | Path) -> OdisiResult:
     return result
 
 
-def get_gages(x: ArrayLike) -> list:
+def get_gages(x: ArrayLike) -> tuple[list[str], list[int]]:
     """Get the names and indices of gages.
 
     Parameters
@@ -115,23 +115,27 @@ def get_gages(x: ArrayLike) -> list:
     -------
     gages : list
         List with the names of the gages.
+    indices : list
+        List of the corresponding column indices in the dataframe.
 
     """
     # Columns correponding to a segments have the following format: id[number]
     # Gages only conain the name (without the bracket + number). This the next
     # regular pattern will only find gages and will exclude segments.
     pattern_id = re.compile(r"(?>[\w ]+)(?!\[\d+\])")
-
+    # Initialize list to store the names of the gages
+    gages = []
+    # Initialize list to store the corresponding indices for each gage
+    indices = []
     # Math each column name against the pattern until no match is found (the
     # gages are always at the beginning, followed by the segments).
-    gages = []
-
-    for k in x:
+    for ix, k in enumerate(x):
         m = pattern_id.match(k)
         if m:
             gages.append(m.group(0))
+            indices.append(ix + 1)
         else:
             break
 
-    return gages
+    return gages, indices
 
