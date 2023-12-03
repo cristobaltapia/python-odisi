@@ -30,13 +30,12 @@ class OdisiResult:
 
     def __init__(self, data, x, metadata):
         self.data: pl.DataFrame = data
-        self.gages: list = []
-        self.segments: list = []
+        self._gages: dict = {}
+        self._segments: dict = {}
         self._x: NDArray = x
         self._channel: int = int(metadata["Channel"])
         self._rate: float = float(metadata["Measurement Rate per Channel"][:-3])
         self._gage_pitch: float = float(metadata["Gage Pitch (mm)"])
-        self._gages_index: dict[str, int] = {}
 
     @property
     def x(self) -> NDArray:
@@ -58,6 +57,10 @@ class OdisiResult:
     def time(self) -> NDArray:
         return self.data.select(pl.col("time")).to_numpy().flatten()
 
+    @property
+    def gages(self):
+        return self._gages.keys()
+
     def gage(self, name: str, with_time: bool = False) -> pl.DataFrame:
         """Get data corresponding to the given gauge.
 
@@ -75,7 +78,7 @@ class OdisiResult:
 
         """
         # Check that the label exists
-        ix_gage = self.data.columns[self._gages_index[name]]
+        ix_gage = self.data.columns[self._gages[name]]
         if with_time:
             return self.data.select(pl.col(["time", ix_gage]))
         else:
@@ -155,7 +158,14 @@ class OdisiGagesResult(OdisiResult):
 
     """Docstring ."""
 
-    def __init__(self, data, x, gages, gages_ix, metadata):
+    def __init__(
+        self,
+        data,
+        x,
+        gages: dict[str, int],
+        segments: dict[str, list[int]],
+        metadata,
+    ):
         """TODO: to be defined.
 
         Parameters
@@ -166,7 +176,8 @@ class OdisiGagesResult(OdisiResult):
         """
         super().__init__(data, x, metadata)
         self._gages = gages
-        self._gages_index = {k: n for k, n in zip(gages, gages_ix)}
+        self._segments = segments
+
 
     def _split_gages(self):
         """TODO: Docstring for _split_gages.

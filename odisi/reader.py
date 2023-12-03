@@ -88,10 +88,14 @@ def read_tsv(path: str | Path) -> OdisiResult:
     x = t[-1, 3:].select(pl.all().cast(float)).to_numpy()[0]
 
     if with_gages:
-        g = t[0, 3:].to_numpy()[0]
-        gages, g_ix = get_gages(g)
+        g = t[0, 3:].to_series().to_numpy()
+        # Get names and indices of gages
+        gages = get_gages(g)
+        # Get names and indices of segments
+        segments = get_segments(g)
+
         result = OdisiGagesResult(
-            data=df, x=x, gages=gages, gages_ix=g_ix, metadata=metadata
+            data=df, x=x, gages=gages, segments=segments, metadata=metadata
         )
     else:
         result = OdisiResult(data=df, x=x, metadata=metadata)
@@ -99,7 +103,7 @@ def read_tsv(path: str | Path) -> OdisiResult:
     return result
 
 
-def get_gages(x: ArrayLike) -> tuple[list[str], list[int]]:
+def get_gages(x: ArrayLike) -> dict[str, int]:
     """Get the names and indices of gages.
 
     Parameters
@@ -119,19 +123,52 @@ def get_gages(x: ArrayLike) -> tuple[list[str], list[int]]:
     # Gages only conain the name (without the bracket + number). This the next
     # regular pattern will only find gages and will exclude segments.
     pattern_id = re.compile(r"(?>[\w ]+)(?!\[\d+\])")
-    # Initialize list to store the names of the gages
-    gages = []
-    # Initialize list to store the corresponding indices for each gage
-    indices = []
+    # Initialize dict to store the names of the gages
+    gages = {}
     # Math each column name against the pattern until no match is found (the
     # gages are always at the beginning, followed by the segments).
     for ix, k in enumerate(x):
         m = pattern_id.match(k)
         if m:
-            gages.append(m.group(0))
-            indices.append(ix + 1)
+            gages[m.group(0)] = ix + 1
         else:
             break
 
-    return gages, indices
+    return gages
+
+
+def get_segments(x: ArrayLike) -> dict[str, list[int]]:
+    """Get the names and indices of segments.
+
+    Parameters
+    ----------
+    x : ArrayLike
+
+    Returns
+    -------
+    segments : list
+        List containing the labels of the segments.
+
+    """
+    # Columns correponding to a gauge have the following format: id[number]
+    # We will search for this format and extract the individual id's first.
+    pattern_id = re.compile(r"(.*)\[\d+\]")
+
+    # Math each column name against the pattern (returns an iterator of Match
+    # objects)
+    ch_match = (pattern_id.match(k) for k in x)
+
+    # Now get the indivudual id's
+    labels = np.unique([k.group(1) for k in ch_match if k]).tolist()
+
+    segments = {}
+
+    for s in segments:
+        # Create a new pattern to find the indices of the current segment
+        pattern_ix = re.compile(rf"{s}(?=\[\d+\])")
+        # Match each column against the pattern
+        match = (pattern_ix.match(k) for k in x)
+        # Retrieve the indices corresponding to the current segment
+        s_ix = [k for k, m in enumerate(match) if m]
+        segments[s] = s_ix
 
