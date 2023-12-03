@@ -172,3 +172,4 @@ def get_segments(x: ArrayLike) -> dict[str, list[int]]:
         s_ix = [k for k, m in enumerate(match) if m]
         segments[s] = s_ix
 
+    return segments
