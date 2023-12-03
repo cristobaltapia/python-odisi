@@ -57,3 +57,12 @@ class TestData:
             dtype=np.datetime64,
         )
         assert_array_equal(t[0:3], r)
+
+    def test_gage_labels(self):
+        p = DATA_GAGES.gage("Start").to_series()
+        assert p[0] == 3.7
+
+    def test_gage_labels_time(self):
+        p = DATA_GAGES.gage("Start", with_time=True)
+        assert p[0, 1] == 3.7
+        assert p[0, 0] == datetime.fromisoformat("2023-09-06 12:51:28.888946")
