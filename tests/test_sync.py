@@ -13,13 +13,13 @@ class TestInterpolation:
             "tests/data/verification_load.csv", try_parse_dates=True
         )
 
-        time = data_time.select(["time [s]"])
+        time = data_time.select(["time [s]"])[::2, :]
         new_time = data_full.interpolate(time)
-        r = [0.98, -3.9, 1.88, 2.74, 2.86]
+        r = [-0.9, 0.8, 4.1, 4.0, 7.4333333]
         # Assert the correctness of the interpolation
-        assert_almost_equal(new_time[2, 1:6].to_numpy()[0], r)
+        assert_almost_equal(new_time[3, 1:6].to_numpy()[0], r)
         # Assert the new rate
-        assert data_full.rate == 0.2
+        assert data_full.rate == 0.4
 
     def test_sync_time_array(self):
         data_full = read_tsv("tests/data/verification_data_ch1_full.tsv")
@@ -27,10 +27,10 @@ class TestInterpolation:
             "tests/data/verification_load.csv", try_parse_dates=True
         )
 
-        time = data_time.select(["time [s]"]).to_series().to_numpy()
+        time = data_time.select(["time [s]"]).to_series().to_numpy()[::2]
         new_time = data_full.interpolate(time)
-        r = [0.98, -3.9, 1.88, 2.74, 2.86]
+        r = [-0.9, 0.8, 4.1, 4.0, 7.4333333]
         # Assert the correctness of the interpolation
-        assert_almost_equal(new_time[2, 1:6].to_numpy()[0], r)
+        assert_almost_equal(new_time[3, 1:6].to_numpy()[0], r)
         # Assert the new rate
-        assert data_full.rate == 0.2
+        assert data_full.rate == 0.4
