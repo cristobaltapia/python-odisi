@@ -36,6 +36,7 @@ class OdisiResult:
         self._channel: int = int(metadata["Channel"])
         self._rate: float = float(metadata["Measurement Rate per Channel"][:-3])
         self._gage_pitch: float = float(metadata["Gage Pitch (mm)"])
+        self._gages_index: dict[str, int] = {}
 
     @property
     def x(self) -> NDArray:
@@ -57,19 +58,28 @@ class OdisiResult:
     def time(self) -> NDArray:
         return self.data.select(pl.col("time")).to_numpy().flatten()
 
-    def gage(self, name: str):
+    def gage(self, name: str, with_time: bool = False) -> pl.DataFrame:
         """Get data corresponding to the given gauge.
 
         Parameters
         ----------
-        name : TODO
+        name : str
+            The label of the gage.
+        with_time : bool
+            Whether a column with the time should also be returned in the dataframe.
 
         Returns
         -------
-        TODO
+        df : pl.DataFrame
+            Dataframe with the data corresponding to the gage.
 
         """
-        pass
+        # Check that the label exists
+        ix_gage = self.data.columns[self._gages_index[name]]
+        if with_time:
+            return self.data.select(pl.col(["time", ix_gage]))
+        else:
+            return self.data.select(pl.col(ix_gage)).to_series()
 
     def segment(self, name: str):
         """Get data corresponding to the given segment.
@@ -145,7 +155,7 @@ class OdisiGagesResult(OdisiResult):
 
     """Docstring ."""
 
-    def __init__(self, data, x, gages, metadata):
+    def __init__(self, data, x, gages, gages_ix, metadata):
         """TODO: to be defined.
 
         Parameters
@@ -156,6 +166,7 @@ class OdisiGagesResult(OdisiResult):
         """
         super().__init__(data, x, metadata)
         self._gages = gages
+        self._gages_index = {k: n for k, n in zip(gages, gages_ix)}
 
     def _split_gages(self):
         """TODO: Docstring for _split_gages.

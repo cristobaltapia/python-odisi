@@ -95,8 +95,10 @@ def read_tsv(path: str | Path) -> OdisiResult:
 
     if with_gages:
         g = t[0, 3:].to_numpy()[0]
-        gages = get_gages(g)
-        result = OdisiGagesResult(data=df, x=x, gages=gages, metadata=metadata)
+        gages, g_ix = get_gages(g)
+        result = OdisiGagesResult(
+            data=df, x=x, gages=gages, gages_ix=g_ix, metadata=metadata
+        )
     else:
         result = OdisiResult(data=df, x=x, metadata=metadata)
 
