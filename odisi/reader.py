@@ -45,12 +45,6 @@ def read_tsv(path: str | Path) -> OdisiResult:
                     with_gages = True
                 break
 
-    # Determine if file has segments defined
-    if n_skip == 31:
-        with_gages = False
-    else:
-        with_gages = True
-
     # Initialize dictionary to store metadata
     metadata = {}
 

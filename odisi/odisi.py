@@ -79,7 +79,7 @@ class OdisiResult:
         if with_time:
             return self.data.select(pl.col(["time", ix_gage]))
         else:
-            return self.data.select(pl.col(ix_gage)).to_series()
+            return self.data.select(pl.col(ix_gage))
 
     def segment(self, name: str):
         """Get data corresponding to the given segment.
