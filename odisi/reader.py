@@ -137,7 +137,7 @@ def get_gages(x: ArrayLike) -> dict[str, int]:
     return gages
 
 
-def get_segments(x: ArrayLike) -> dict[str, list[int]]:
+def get_segments(x: ArrayLike) -> dict[str, tuple[int]]:
     """Get the names and indices of segments.
 
     Parameters
@@ -169,7 +169,7 @@ def get_segments(x: ArrayLike) -> dict[str, list[int]]:
         # Match each column against the pattern
         match = (pattern_ix.match(k) for k in x)
         # Retrieve the indices corresponding to the current segment
-        s_ix = [k for k, m in enumerate(match) if m]
-        segments[s] = s_ix
+        s_ix = [int(k) + 1 for k, m in enumerate(match) if m]
+        segments[s] = (s_ix[0], s_ix[-1])
 
     return segments

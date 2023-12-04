@@ -30,8 +30,8 @@ class OdisiResult:
 
     def __init__(self, data, x, metadata):
         self.data: pl.DataFrame = data
-        self._gages: dict = {}
-        self._segments: dict = {}
+        self._gages: dict[str, int] = {}
+        self._segments: dict[str, list[int]] = {}
         self._x: NDArray = x
         self._channel: int = int(metadata["Channel"])
         self._rate: float = float(metadata["Measurement Rate per Channel"][:-3])
@@ -61,6 +61,10 @@ class OdisiResult:
     def gages(self) -> list[str]:
         return list(self._gages.keys())
 
+    @property
+    def segments(self) -> list[str]:
+        return list(self._segments.keys())
+
     def gage(self, label: str, with_time: bool = False) -> pl.DataFrame:
         """Get data corresponding to the given gauge.
 
@@ -87,19 +91,34 @@ class OdisiResult:
         else:
             return self.data.select(pl.col(ix_gage))
 
-    def segment(self, name: str):
+    def segment(self, label: str, with_time: bool = False) -> pl.DataFrame:
         """Get data corresponding to the given segment.
 
         Parameters
         ----------
-        name : TODO
+        label : str
+            Tha label of the segment.
+        with_time : bool
+            Whether a column with the time should also be returned in the dataframe.
 
         Returns
         -------
         TODO
 
         """
-        pass
+        # Check that the label exists
+        if label not in self.segments:
+            raise KeyError("The given segment label does not exist.")
+
+        # Get start and end indices delimiting the column range for the segment
+        s, e = self._segments[label]
+        # Get the column name of the corresponding columns
+        ix_segment = self.data.columns[s : e + 1]
+
+        if with_time:
+            return self.data.select(pl.col(["time", *ix_segment]))
+        else:
+            return self.data.select(pl.col(ix_segment))
 
     def reverse_segment(self, name: str):
         """Reverse the direction of the segment.
@@ -180,7 +199,6 @@ class OdisiGagesResult(OdisiResult):
         super().__init__(data, x, metadata)
         self._gages = gages
         self._segments = segments
-
 
     def _split_gages(self):
         """TODO: Docstring for _split_gages.
