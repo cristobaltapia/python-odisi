@@ -197,7 +197,7 @@ class OdisiResult:
         # Update data
         self.data = df_sync
 
-        return self.data
+        return self
 
 
 class OdisiGagesResult(OdisiResult):

@@ -14,10 +14,11 @@ class TestInterpolation:
         )
 
         time = data_time.select(["time [s]"])[::2]
-        new_time = data_full.interpolate(time)
+        data_full.interpolate(time)
+        interp_data = data_full.data
         r = [-0.9, 0.8, 4.1, 4.0, 7.4333333]
         # Assert the correctness of the interpolation
-        assert_almost_equal(new_time[3, 1:6].to_numpy()[0], r)
+        assert_almost_equal(interp_data[3, 1:6].to_numpy()[0], r)
         # Assert the new rate
         assert data_full.rate == 0.4
 
@@ -28,10 +29,11 @@ class TestInterpolation:
         )
 
         time = data_time.select(["time [s]"]).to_series().to_numpy()[::2]
-        new_time = data_full.interpolate(time)
+        data_full.interpolate(time)
+        interp_data = data_full.data
         r = [-0.9, 0.8, 4.1, 4.0, 7.4333333]
         # Assert the correctness of the interpolation
-        assert_almost_equal(new_time[3, 1:6].to_numpy()[0], r)
+        assert_almost_equal(interp_data[3, 1:6].to_numpy()[0], r)
         # Assert the new rate
         assert data_full.rate == 0.4
 
@@ -42,9 +44,10 @@ class TestInterpolation:
         )
 
         time = data_time.select(["time [s]"]).to_series().to_numpy()[::2]
-        new_time = data_full.interpolate(time, relative_time=True)
+        data_full.interpolate(time, relative_time=True)
+        interp_data = data_full.data
         r = [-0.9, 0.8, 4.1, 4.0, 7.4333333]
         # Assert the correctness of the interpolation
-        assert_almost_equal(new_time[3, 1:6].to_numpy()[0], r)
+        assert_almost_equal(interp_data[3, 1:6].to_numpy()[0], r)
         # Assert the new rate
         assert data_full.rate == 0.4
