@@ -88,7 +88,7 @@ def read_tsv(path: str | Path) -> OdisiResult:
     x = t[-1, 3:].select(pl.all().cast(float)).to_numpy()[0]
 
     if with_gages:
-        g = t[0, 3:].to_series().to_numpy()
+        g = t[0, 3:].to_numpy()[0]
         # Get names and indices of gages
         gages = get_gages(g)
         # Get names and indices of segments
