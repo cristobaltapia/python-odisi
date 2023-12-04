@@ -49,7 +49,7 @@ class TestData:
         )
         assert_array_equal(t[0:3], r)
 
-    def test_gage_labels(self):
+    def test_gage_data(self):
         p = DATA_GAGES.gage("Start").to_series()
         assert p[0] == 3.7
 
@@ -57,3 +57,22 @@ class TestData:
         p = DATA_GAGES.gage("Start", with_time=True)
         assert p[0, 1] == 3.7
         assert p[0, 0] == datetime.fromisoformat("2023-09-06 12:51:28.888946")
+
+    def test_gages(self):
+        p = DATA_GAGES.gages
+        r = [
+            "Start",
+            "End",
+            "A1s",
+            "A1e",
+            "A2s",
+            "A2e",
+            "B1s",
+            "B1e",
+            "B2s",
+            "B2e",
+            "All Gage",
+            "A",
+            "B",
+        ]
+        assert_array_equal(p, r)
