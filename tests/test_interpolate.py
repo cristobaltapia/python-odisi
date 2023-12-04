@@ -1,7 +1,7 @@
 import pdb
 
 import polars as pl
-from numpy.testing import assert_almost_equal, assert_array_equal
+from numpy.testing import assert_almost_equal
 
 from odisi import read_tsv
 
