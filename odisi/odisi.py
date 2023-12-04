@@ -149,7 +149,8 @@ class OdisiResult:
 
         Returns
         -------
-        TODO
+        data : pl.DataFrame
+            Dataframe with the interpolated data.
 
         """
         data = self.data
