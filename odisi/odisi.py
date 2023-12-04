@@ -78,7 +78,9 @@ class OdisiResult:
 
         """
         # Check that the label exists
-        ix_gage = self.data.columns[self._gages[name]]
+        if label not in self.gages:
+            raise KeyError("The given gage label does not exist.")
+
         ix_gage = self.data.columns[self._gages[label]]
         if with_time:
             return self.data.select(pl.col(["time", ix_gage]))

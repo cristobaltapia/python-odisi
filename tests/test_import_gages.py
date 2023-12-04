@@ -76,3 +76,11 @@ class TestData:
             "B",
         ]
         assert_array_equal(p, r)
+
+
+class TestErrors:
+    def test_error_bad_gage_label(self):
+        with pytest.raises(KeyError) as excinfo:
+            DATA_GAGES.gage("not a label")
+
+        assert str(excinfo.value) == "'The given gage label does not exist.'"
