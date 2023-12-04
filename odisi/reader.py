@@ -163,7 +163,7 @@ def get_segments(x: ArrayLike) -> dict[str, list[int]]:
 
     segments = {}
 
-    for s in segments:
+    for s in labels:
         # Create a new pattern to find the indices of the current segment
         pattern_ix = re.compile(rf"{s}(?=\[\d+\])")
         # Match each column against the pattern
