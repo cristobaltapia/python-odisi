@@ -143,7 +143,7 @@ class OdisiResult:
         time: NDArray[np.datetime64] | pl.DataFrame,
         clip: bool = False,
         relative_time: bool = False,
-    ) -> None:
+    ) -> pl.DataFrame:
         """Interpolate the sensor data to match the timestamp of the given array.
 
         This method assumes that the timestamp in `time` is synchronized with the
@@ -153,8 +153,9 @@ class OdisiResult:
         ----------
         time : NDArray[datetime64]
             Array with the time used to interpolate the sensor data.
-        keep_sample_rate : bool
-            Whether the sample rate of the original sensor data should be preserved.
+        clip : bool (False)
+            Whether the interpolated data should only consider timestamps common
+            to both `time` and senor data.
         relative_time : bool (False)
             Singnals whether the values in `time` correspond to relative delta
             times in seconds. These data will then be converted to `Datetime`
@@ -182,6 +183,19 @@ class OdisiResult:
                 pl.col("time").map_elements(timedelta_sec).add(t_init)
             )
 
+        # Clip the data if requested
+        if clip:
+            # Get max/min timestamp for both Dataframes
+            min_t = time.select(pl.col("time")).min()[0, 0]
+            max_t = time.select(pl.col("time")).max()[0, 0]
+            min_d = data.select(pl.col("time")).min()[0, 0]
+            max_d = data.select(pl.col("time")).max()[0, 0]
+            clip_low = max(min_t, min_d)
+            clip_up = min(max_t, max_d)
+            # Filter the data
+            time = time.filter((pl.col("time") >= clip_low) & (pl.col("time") <= clip_up))
+            data = data.filter((pl.col("time") >= clip_low) & (pl.col("time") <= clip_up))
+
         # Do the interpolation
         aux, _ = pl.align_frames(data, time, on="time")
 
@@ -197,7 +211,7 @@ class OdisiResult:
         # Update data
         self.data = df_sync
 
-        return None
+        return time
 
     def interpolate_signal(
         self,
