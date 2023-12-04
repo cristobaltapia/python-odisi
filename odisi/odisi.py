@@ -141,8 +141,9 @@ class OdisiResult:
     def interpolate(
         self,
         time: NDArray[np.datetime64] | pl.DataFrame,
+        clip: bool = False,
         relative_time: bool = False,
-    ):
+    ) -> None:
         """Interpolate the sensor data to match the timestamp of the given array.
 
         This method assumes that the timestamp in `time` is synchronized with the
@@ -161,8 +162,7 @@ class OdisiResult:
 
         Returns
         -------
-        data : pl.DataFrame
-            Dataframe with the interpolated data.
+        None
 
         """
         data = self.data
@@ -197,7 +197,61 @@ class OdisiResult:
         # Update data
         self.data = df_sync
 
-        return self
+        return None
+
+    def interpolate_signal(
+        self,
+        data: pl.DataFrame | None = None,
+        time: str | NDArray | None = None,
+        signal: str | NDArray | None = None,
+        relative_time: bool = False,
+        clip: bool = False,
+    ) -> pl.DataFrame:
+        """Interpolate an external signal, such that it matches the data from the sensor.
+
+        Parameters
+        ----------
+        data : pl.Dataframe (None)
+            Dataframe containing a column for the timestamp and another for the signal
+            to be interopolated. If given, then column name for the time and signal
+            should be given in the parameters `time` and `signal` respectively.
+        time : str | NDArray (None)
+            If `data` is given, then this parameters takes the name of the column containing the timestamp to be considered for the interpolation. Otherwise,
+            this should be an array with the timestamp for the interpolation.
+        signal : str | NDArray (None)
+            If `data` is given, then this parameters takes the name of the column
+            containing the data to be interpolated. Otherwise, this should be an
+            array with the signal to be interpolated.
+        clip : TODO, optional
+
+        Returns
+        -------
+        TODO
+
+        """
+        data_sensor = self.data
+
+        # Ensure the correct name for the column
+        if isinstance(data, pl.DataFrame):
+            data = data.rename({time: "time"})
+        # Convert time to polars DataFrame if needed
+        else:
+            data = pl.DataFrame({"time": time, "signal": signal})
+
+        # Do the interpolation
+        _, aux = pl.align_frames(data_sensor, data, on="time")
+
+        # Interpolate data
+        df_sync = aux.interpolate()
+
+        sensor_time = data_sensor.select(pl.col("time"))
+        # Now get only the data associated to the load data
+        ix_load = [
+            k[0] in sensor_time[:, 0] for k in df_sync.select("time").iter_rows()
+        ]
+        df_sync = df_sync.filter(ix_load)
+
+        return df_sync
 
 
 class OdisiGagesResult(OdisiResult):
