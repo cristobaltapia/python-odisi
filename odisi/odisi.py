@@ -170,8 +170,9 @@ class OdisiResult:
         ix_load = [k[0] in time[:, 0] for k in df_sync.select("time").iter_rows()]
         df_sync = df_sync.filter(ix_load)
 
-        # TODO: Update self._rate
+        # Update rate
         self._rate = (df_sync[1, 0] - df_sync[0, 0]).total_seconds()
+        # Update data
         self.data = df_sync
 
         return self.data
