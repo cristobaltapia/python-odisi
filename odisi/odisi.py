@@ -58,8 +58,8 @@ class OdisiResult:
         return self.data.select(pl.col("time")).to_numpy().flatten()
 
     @property
-    def gages(self):
-        return self._gages.keys()
+    def gages(self) -> list[str]:
+        return list(self._gages.keys())
 
     def gage(self, name: str, with_time: bool = False) -> pl.DataFrame:
         """Get data corresponding to the given gauge.
