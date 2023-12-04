@@ -1,7 +1,10 @@
+from datetime import datetime, timedelta
+
 import numpy as np
 import polars as pl
 from numpy.typing import ArrayLike, NDArray
-import pdb
+
+from odisi.utils import ar_timedelta, timedelta_sec
 
 
 class OdisiResult:
@@ -135,17 +138,26 @@ class OdisiResult:
         """
         pass
 
-    def interpolate(self, time: ArrayLike | pl.DataFrame, keep_sample_rate=False):
+    def interpolate(
+        self,
+        time: NDArray[np.datetime64] | pl.DataFrame,
+        relative_time: bool = False,
+    ):
         """Interpolate the sensor data to match the timestamp of the given array.
 
-        This method assumes that
+        This method assumes that the timestamp in `time` is synchronized with the
+        timestamp of the measured data.
 
         Parameters
         ----------
-        time : ArrayLike | pl.DataFrame
+        time : NDArray[datetime64]
             Array with the time used to interpolate the sensor data.
         keep_sample_rate : bool
             Whether the sample rate of the original sensor data should be preserved.
+        relative_time : bool (False)
+            Singnals whether the values in `time` correspond to relative delta
+            times in seconds. These data will then be converted to `Datetime`
+            objects in order to perform the interpolation.
 
         Returns
         -------
@@ -162,6 +174,15 @@ class OdisiResult:
         else:
             time = pl.DataFrame({"time": time})
 
+        # Consider relative time data
+        if relative_time:
+            # Get initial timestamp from sensor data
+            t_init = data[0, 0]
+            time = time.with_columns(
+                pl.col("time").map_elements(timedelta_sec).add(t_init)
+            )
+
+        # Do the interpolation
         aux, _ = pl.align_frames(data, time, on="time")
 
         # Interpolate data
