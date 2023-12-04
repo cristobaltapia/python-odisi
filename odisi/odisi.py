@@ -61,12 +61,12 @@ class OdisiResult:
     def gages(self) -> list[str]:
         return list(self._gages.keys())
 
-    def gage(self, name: str, with_time: bool = False) -> pl.DataFrame:
+    def gage(self, label: str, with_time: bool = False) -> pl.DataFrame:
         """Get data corresponding to the given gauge.
 
         Parameters
         ----------
-        name : str
+        label : str
             The label of the gage.
         with_time : bool
             Whether a column with the time should also be returned in the dataframe.
@@ -79,6 +79,7 @@ class OdisiResult:
         """
         # Check that the label exists
         ix_gage = self.data.columns[self._gages[name]]
+        ix_gage = self.data.columns[self._gages[label]]
         if with_time:
             return self.data.select(pl.col(["time", ix_gage]))
         else:
