@@ -103,7 +103,8 @@ class OdisiResult:
 
         Returns
         -------
-        TODO
+        df : pl.DataFrame
+            Dataframe with the data corresponding to the segment.
 
         """
         # Check that the label exists
