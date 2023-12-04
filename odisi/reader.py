@@ -122,7 +122,7 @@ def get_gages(x: ArrayLike) -> dict[str, int]:
     # Columns correponding to a segments have the following format: id[number]
     # Gages only conain the name (without the bracket + number). This the next
     # regular pattern will only find gages and will exclude segments.
-    pattern_id = re.compile(r"(?>[\w ]+)(?!\[\d+\])")
+    pattern_id = re.compile(r"[\w ]+(?!\[\d+\])")
     # Initialize dict to store the names of the gages
     gages = {}
     # Math each column name against the pattern until no match is found (the
