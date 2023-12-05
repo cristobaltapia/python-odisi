@@ -76,3 +76,14 @@ class TestInterpolation:
         assert_almost_equal(interp_data[3, 1:6].to_numpy()[0], r)
         # Assert the new rate
         assert new_time[-1, 0] == datetime.fromisoformat("2023-09-06T12:54:08.088946")
+
+    def test_interp_signal_clip(self):
+        data_full = read_tsv("tests/data/verification_data_ch1_full.tsv")
+        signal = pl.read_csv("tests/data/verification_load.csv", try_parse_dates=True)
+
+        new_signal = data_full.interpolate_signal(
+            data=signal, time="time [s]", clip=True
+        )
+        r = datetime.fromisoformat("2023-09-06T12:54:08.182396")
+        # Assert the correctness of the interpolation
+        assert new_signal[-1, 0] == r

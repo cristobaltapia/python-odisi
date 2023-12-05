@@ -148,6 +148,17 @@ class OdisiResult:
         """
         pass
 
+    def clip_time(self, data: pl.DataFrame, time: pl.DataFrame):
+        # Get max/min timestamp for both Dataframes
+        min_t = time.select(pl.col("time")).min()[0, 0]
+        max_t = time.select(pl.col("time")).max()[0, 0]
+        min_d = data.select(pl.col("time")).min()[0, 0]
+        max_d = data.select(pl.col("time")).max()[0, 0]
+        clip_low = max(min_t, min_d)
+        clip_up = min(max_t, max_d)
+
+        return clip_low, clip_up
+
     def interpolate(
         self,
         time: NDArray[np.datetime64] | pl.DataFrame,
@@ -197,13 +208,8 @@ class OdisiResult:
 
         # Clip the data if requested
         if clip:
-            # Get max/min timestamp for both Dataframes
-            min_t = time.select(pl.col("time")).min()[0, 0]
-            max_t = time.select(pl.col("time")).max()[0, 0]
-            min_d = data.select(pl.col("time")).min()[0, 0]
-            max_d = data.select(pl.col("time")).max()[0, 0]
-            clip_low = max(min_t, min_d)
-            clip_up = min(max_t, max_d)
+            # Get min/max range
+            clip_low, clip_up = self.clip_time(data, time)
             # Filter the data
             time = time.filter(
                 (pl.col("time") >= clip_low) & (pl.col("time") <= clip_up)
@@ -255,7 +261,7 @@ class OdisiResult:
 
         Returns
         -------
-        TODO
+        df : pl.DataFrame
 
         """
         data_sensor = self._data
@@ -267,6 +273,18 @@ class OdisiResult:
         else:
             data = pl.DataFrame({"time": time, "signal": signal})
 
+        # Clip the data if requested
+        if clip:
+            # Get min/max range
+            clip_low, clip_up = self.clip_time(data_sensor, data)
+            # Filter the data
+            data_sensor = data_sensor.filter(
+                (pl.col("time") >= clip_low) & (pl.col("time") <= clip_up)
+            )
+            data = data.filter(
+                (pl.col("time") >= clip_low) & (pl.col("time") <= clip_up)
+            )
+
         # Do the interpolation
         _, aux = pl.align_frames(data_sensor, data, on="time")
 
@@ -274,6 +292,7 @@ class OdisiResult:
         df_sync = aux.interpolate()
 
         sensor_time = data_sensor.select(pl.col("time"))
+
         # Now get only the data associated to the load data
         ix_load = [
             k[0] in sensor_time[:, 0] for k in df_sync.select("time").iter_rows()
