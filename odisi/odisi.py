@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 import polars as pl
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 
 from odisi.utils import ar_timedelta, timedelta_sec
 
@@ -13,14 +13,14 @@ class OdisiResult:
 
     Attributes
     ----------
-    gages : list[str]
-        A list containing the name of each gage.
-    segments : list[str]
-        A list containing the name of each segment.
     data : obj:`DataFrame`
         A dataframe with the data of the experiment.
     x : ArrayLike
         The measurement positions along the sensor.
+    gages : list[str]
+        A list containing the name of each gage.
+    segments : list[str]
+        A list containing the name of each segment.
     metadata : dict
         Dictionary containing the metadata of the experiment.
     channel : int
@@ -147,7 +147,8 @@ class OdisiResult:
         """Interpolate the sensor data to match the timestamp of the given array.
 
         This method assumes that the timestamp in `time` is synchronized with the
-        timestamp of the measured data.
+        timestamp of the measured data, i.e. both measuring computers have the
+        same time.
 
         Parameters
         ----------
@@ -157,13 +158,14 @@ class OdisiResult:
             Whether the interpolated data should only consider timestamps common
             to both `time` and senor data.
         relative_time : bool (False)
-            Singnals whether the values in `time` correspond to relative delta
+            Signals whether the values in `time` correspond to relative delta
             times in seconds. These data will then be converted to `Datetime`
             objects in order to perform the interpolation.
 
         Returns
         -------
-        None
+        time : pl.DataFrame
+            The interpolated timestamp as dataframe.
 
         """
         data = self.data
@@ -227,15 +229,14 @@ class OdisiResult:
         ----------
         data : pl.Dataframe (None)
             Dataframe containing a column for the timestamp and another for the signal
-            to be interopolated. If given, then column name for the time and signal
-            should be given in the parameters `time` and `signal` respectively.
+            to be interpolated. If given, then column name for the time should be given
+            in the parameters `time`.
         time : str | NDArray (None)
             If `data` is given, then this parameters takes the name of the column containing the timestamp to be considered for the interpolation. Otherwise,
             this should be an array with the timestamp for the interpolation.
         signal : str | NDArray (None)
-            If `data` is given, then this parameters takes the name of the column
-            containing the data to be interpolated. Otherwise, this should be an
-            array with the signal to be interpolated.
+            If `data` is given, then this parameters is not needed. Otherwise, this
+            should be an array with the signal to be interpolated.
         clip : TODO, optional
 
         Returns

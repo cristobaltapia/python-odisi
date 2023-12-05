@@ -1,11 +1,11 @@
 import pdb
 import re
 from pathlib import Path
+from typing import Iterable
 
 import numpy as np
 import polars as pl
 import polars.selectors as cs
-from numpy.typing import ArrayLike
 
 from odisi.odisi import OdisiGagesResult, OdisiResult
 
@@ -73,7 +73,7 @@ def read_tsv(path: str | Path) -> OdisiResult:
     # We only use the time and data columns (not the strain and measurement ones)
     df = pl.concat([time, data], how="horizontal")
 
-    # Get line number for the x-coordinate
+    # Get line number to read x-coordinate, tare and gages/segments information
     line_x = 3 if with_gages else 2
 
     # Read data for: x-coordinate, tare and gages/segments (if available)
@@ -85,6 +85,7 @@ def read_tsv(path: str | Path) -> OdisiResult:
         has_header=False,
     )
 
+    # Get the x-coordinates
     x = t[-1, 3:].select(pl.all().cast(float)).to_numpy()[0]
 
     if with_gages:
@@ -103,33 +104,34 @@ def read_tsv(path: str | Path) -> OdisiResult:
     return result
 
 
-def get_gages(x: ArrayLike) -> dict[str, int]:
+def get_gages(x: Iterable[str]) -> dict[str, int]:
     """Get the names and indices of gages.
 
     Parameters
     ----------
-    x : ArrayLike
-        The whole row with the names of gages and segments.
+    x : Iterable
+        The row containing the names of gages and segments.
 
     Returns
     -------
-    gages : list
-        List with the names of the gages.
-    indices : list
-        List of the corresponding column indices in the dataframe.
+    gages : dict[str, int]
+        A dictionary mapping the name of the gages with the respective number
+        of the column in the dataframe containing the sensor data.
 
     """
-    # Columns correponding to a segments have the following format: id[number]
-    # Gages only conain the name (without the bracket + number). This the next
+    # Columns corresponding to a segment have the following format: id[number]
+    # Gages only contain the name (without the bracket + number). The next
     # regular pattern will only find gages and will exclude segments.
     pattern_id = re.compile(r"[\w ]+(?!\[\d+\])")
-    # Initialize dict to store the names of the gages
+    # Initialize dictionary to map labels to column numbers
     gages = {}
-    # Math each column name against the pattern until no match is found (the
+    # Match each column name against the pattern until no match is found (the
     # gages are always at the beginning, followed by the segments).
     for ix, k in enumerate(x):
         m = pattern_id.match(k)
         if m:
+            # The '+ 1' is needed to consider the first column used for the
+            # timestamp.
             gages[m.group(0)] = ix + 1
         else:
             break
@@ -137,28 +139,29 @@ def get_gages(x: ArrayLike) -> dict[str, int]:
     return gages
 
 
-def get_segments(x: ArrayLike) -> dict[str, tuple[int]]:
+def get_segments(x: Iterable) -> dict[str, tuple[int, int]]:
     """Get the names and indices of segments.
 
     Parameters
     ----------
-    x : ArrayLike
+    x : Iterable
 
     Returns
     -------
-    segments : list
-        List containing the labels of the segments.
+    segments : dict[str, tuple[int, int]]
+        Dictionary mapping the labels to the corresponding (start, end) indices
+        for each segment.
 
     """
-    # Columns correponding to a gauge have the following format: id[number]
+    # Columns corresponding to a gage have the following format: id[number]
     # We will search for this format and extract the individual id's first.
     pattern_id = re.compile(r"(.*)\[\d+\]")
 
-    # Math each column name against the pattern (returns an iterator of Match
+    # Match each column name against the pattern (returns an iterator of Match
     # objects)
     ch_match = (pattern_id.match(k) for k in x)
 
-    # Now get the indivudual id's
+    # Now get the individual id's
     labels = np.unique([k.group(1) for k in ch_match if k]).tolist()
 
     segments = {}
