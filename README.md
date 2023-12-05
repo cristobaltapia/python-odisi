@@ -32,7 +32,7 @@ segments = d.segments
 # Get the data for a specific gage, e.g. with the label 'A'
 d_gage = d.gage("A")
 # Get the data for a specific segment, e.g. with the label 'Seg-1'
-d_seg = d.segment("Seg-1")
+d_seg, x_seg = d.segment("Seg-1")
 ```
 
 ### Interpolation of data
