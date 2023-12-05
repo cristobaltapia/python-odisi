@@ -98,7 +98,9 @@ class OdisiResult:
         else:
             return self._data.select(pl.col(ix_gage))
 
-    def segment(self, label: str, with_time: bool = False) -> pl.DataFrame:
+    def segment(
+        self, label: str, with_time: bool = False
+    ) -> tuple[pl.DataFrame, NDArray]:
         """Get data corresponding to the given segment.
 
         Parameters
@@ -112,6 +114,8 @@ class OdisiResult:
         -------
         df : pl.DataFrame
             Dataframe with the data corresponding to the segment.
+        x : NDArray
+            Relative x-coordinates for the segment.
 
         """
         # Check that the label exists
@@ -122,11 +126,13 @@ class OdisiResult:
         s, e = self._segments[label]
         # Get the column name of the corresponding columns
         ix_segment = self._data.columns[s : e + 1]
+        # Generate x-axis (starting from zero)
+        x = self.x[s - 1 : e] - self.x[s - 1]
 
         if with_time:
-            return self._data.select(pl.col(["time", *ix_segment]))
+            return self._data.select(pl.col(["time", *ix_segment])), x
         else:
-            return self._data.select(pl.col(ix_segment))
+            return self._data.select(pl.col(ix_segment)), x
 
     def reverse_segment(self, name: str):
         """Reverse the direction of the segment.

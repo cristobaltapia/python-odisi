@@ -46,12 +46,14 @@ class TestSegments:
         assert_array_equal(p, r)
 
     def test_segment_data(self):
-        p = DATA_GAGES.segment("B2").to_numpy()[0, -5:]
+        p, x = DATA_GAGES.segment("B2")
+        d = p.to_numpy()[0, -5:]
         r = [-1.3, -3, -0.9, -2.4, -0.2]
-        assert_array_equal(p, r)
+        assert_array_equal(d, r)
+        assert x.shape[0] == p.shape[1]
 
     def test_segment_time(self):
-        p = DATA_GAGES.segment("All Gages", with_time=True)
+        p, x = DATA_GAGES.segment("All Gages", with_time=True)
         assert p[0, 1] == 3.7
         assert p[0, 0] == datetime.fromisoformat("2023-09-06 12:51:28.888946")
 
