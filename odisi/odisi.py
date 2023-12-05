@@ -239,7 +239,7 @@ class OdisiResult:
         self,
         data: pl.DataFrame | None = None,
         time: str | NDArray | None = None,
-        signal: str | NDArray | None = None,
+        signal: NDArray | None = None,
         relative_time: bool = False,
         clip: bool = False,
     ) -> pl.DataFrame:
@@ -247,14 +247,14 @@ class OdisiResult:
 
         Parameters
         ----------
-        data : pl.Dataframe (None)
+        data : pl.Dataframe | None (None)
             Dataframe containing a column for the timestamp and another for the signal
             to be interpolated. If given, then column name for the time should be given
             in the parameters `time`.
-        time : str | NDArray (None)
+        time : str | NDArray | None (None)
             If `data` is given, then this parameters takes the name of the column containing the timestamp to be considered for the interpolation. Otherwise,
             this should be an array with the timestamp for the interpolation.
-        signal : str | NDArray (None)
+        signal : NDArray | None (None)
             If `data` is given, then this parameters is not needed. Otherwise, this
             should be an array with the signal to be interpolated.
         clip : TODO, optional
