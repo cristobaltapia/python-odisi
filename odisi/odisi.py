@@ -4,7 +4,7 @@ import numpy as np
 import polars as pl
 from numpy.typing import NDArray
 
-from odisi.utils import ar_timedelta, timedelta_sec
+from odisi.utils import timedelta_sec
 
 
 class OdisiResult:
@@ -32,13 +32,17 @@ class OdisiResult:
     """
 
     def __init__(self, data, x, metadata):
-        self.data: pl.DataFrame = data
+        self._data: pl.DataFrame = data
         self._gages: dict[str, int] = {}
         self._segments: dict[str, list[int]] = {}
         self._x: NDArray = x
         self._channel: int = int(metadata["Channel"])
         self._rate: float = float(metadata["Measurement Rate per Channel"][:-3])
         self._gage_pitch: float = float(metadata["Gage Pitch (mm)"])
+
+    @property
+    def data(self) -> pl.DataFrame:
+        return self._data
 
     @property
     def x(self) -> NDArray:
@@ -88,11 +92,11 @@ class OdisiResult:
         if label not in self.gages:
             raise KeyError("The given gage label does not exist.")
 
-        ix_gage = self.data.columns[self._gages[label]]
+        ix_gage = self._data.columns[self._gages[label]]
         if with_time:
-            return self.data.select(pl.col(["time", ix_gage]))
+            return self._data.select(pl.col(["time", ix_gage]))
         else:
-            return self.data.select(pl.col(ix_gage))
+            return self._data.select(pl.col(ix_gage))
 
     def segment(self, label: str, with_time: bool = False) -> pl.DataFrame:
         """Get data corresponding to the given segment.
@@ -117,12 +121,12 @@ class OdisiResult:
         # Get start and end indices delimiting the column range for the segment
         s, e = self._segments[label]
         # Get the column name of the corresponding columns
-        ix_segment = self.data.columns[s : e + 1]
+        ix_segment = self._data.columns[s : e + 1]
 
         if with_time:
-            return self.data.select(pl.col(["time", *ix_segment]))
+            return self._data.select(pl.col(["time", *ix_segment]))
         else:
-            return self.data.select(pl.col(ix_segment))
+            return self._data.select(pl.col(ix_segment))
 
     def reverse_segment(self, name: str):
         """Reverse the direction of the segment.
@@ -168,7 +172,7 @@ class OdisiResult:
             The interpolated timestamp as dataframe.
 
         """
-        data = self.data
+        data = self._data
 
         # Ensure the correct name for the column
         if isinstance(time, pl.DataFrame):
@@ -195,8 +199,12 @@ class OdisiResult:
             clip_low = max(min_t, min_d)
             clip_up = min(max_t, max_d)
             # Filter the data
-            time = time.filter((pl.col("time") >= clip_low) & (pl.col("time") <= clip_up))
-            data = data.filter((pl.col("time") >= clip_low) & (pl.col("time") <= clip_up))
+            time = time.filter(
+                (pl.col("time") >= clip_low) & (pl.col("time") <= clip_up)
+            )
+            data = data.filter(
+                (pl.col("time") >= clip_low) & (pl.col("time") <= clip_up)
+            )
 
         # Do the interpolation
         aux, _ = pl.align_frames(data, time, on="time")
@@ -211,7 +219,7 @@ class OdisiResult:
         # Update rate
         self._rate = (df_sync[1, 0] - df_sync[0, 0]).total_seconds()
         # Update data
-        self.data = df_sync
+        self._data = df_sync
 
         return time
 
@@ -244,7 +252,7 @@ class OdisiResult:
         TODO
 
         """
-        data_sensor = self.data
+        data_sensor = self._data
 
         # Ensure the correct name for the column
         if isinstance(data, pl.DataFrame):
