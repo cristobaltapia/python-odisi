@@ -53,6 +53,19 @@ class TestInterpolation:
         # Assert the new rate
         assert data_full.rate == 0.4
 
+    def test_interp_signal_time_relative(self):
+        data_full = read_tsv("tests/data/verification_data_ch1_full.tsv")
+        data_time = pl.read_csv(
+            "tests/data/verification_load_relative_time.csv", try_parse_dates=True
+        )
+
+        new_signal = data_full.interpolate_signal(
+            data_time, time="time [s]", relative_time=True
+        )
+        r = [0.00265, 0.001765, -0.00054, 0.000285, -0.004265]
+        # Assert the correctness of the interpolation
+        assert_almost_equal(new_signal[:5, 1], r)
+
     def test_interp_signal(self):
         data_full = read_tsv("tests/data/verification_data_ch1_full.tsv")
         signal = pl.read_csv("tests/data/verification_load.csv", try_parse_dates=True)

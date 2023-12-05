@@ -257,6 +257,10 @@ class OdisiResult:
         signal : NDArray | None (None)
             If `data` is given, then this parameters is not needed. Otherwise, this
             should be an array with the signal to be interpolated.
+        relative_time : bool (False)
+            Signals whether the values in `time` correspond to relative delta
+            times in seconds. These data will then be converted to `Datetime`
+            objects in order to perform the interpolation.
         clip : TODO, optional
 
         Returns
@@ -272,6 +276,14 @@ class OdisiResult:
         # Convert time to polars DataFrame if needed
         else:
             data = pl.DataFrame({"time": time, "signal": signal})
+
+        # Consider relative time data
+        if relative_time:
+            # Get initial timestamp from sensor data
+            t_init = data_sensor[0, 0]
+            data = data.with_columns(
+                pl.col("time").map_elements(timedelta_sec).add(t_init)
+            )
 
         # Clip the data if requested
         if clip:
