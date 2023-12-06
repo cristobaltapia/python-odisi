@@ -3,8 +3,8 @@
 ## Description
 
 This python package defines a reader and helper methods to handle data exported from the Luna ODiSI 6000 optical measuring system.
-The benefit of using it is an easier retrieval of the data corresponding to each segment, as well as the possibility to interpolate the results based on additional measurements, such as experimental load.
-Doing this manually requires some amount of python code, so I did it, so you don't have to.
+It allows for an easier retrieval of data corresponding to each segment, as well as the possibility to interpolate the results based on additional measurements, such as experimental load.
+Doing this manually requires some amount of python code, which can be avoided by using this package.
 
 ## Installation
 
@@ -14,7 +14,7 @@ Doing this manually requires some amount of python code, so I did it, so you don
 pip install ...
 ```
 
-Until PyPI allows to create new projects install it with the following command:
+Until PyPI allows creating new projects install it with the following command:
 
 ```bash
 pip install 'python-odisi @ git@github.com:cristobaltapia/python-odisi.git'
