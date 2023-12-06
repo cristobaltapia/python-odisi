@@ -4,9 +4,10 @@ version = "0.1.0"
 description = ""
 authors = ["Cristóbal Tapia Camú <crtapia@gmail.com>"]
 readme = "README.md"
-url = "https://github.com/cristobaltapia/python-odisi"
+homepage = "https://github.com/cristobaltapia/python-odisi"
+repository = "https://github.com/cristobaltapia/python-odisi"
 packages = [{ include = "odisi" }]
-license = {file = "LICENSE"}
+license = "MIT"
 keywords = ["odisi", "reader", "import"]
 
 [tool.poetry.dependencies]
