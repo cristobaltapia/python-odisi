@@ -8,16 +8,10 @@ Doing this manually requires some amount of python code, which can be avoided by
 
 ## Installation
 
-~Install as usual:~
+Install as usual:
 
 ```bash
-pip install ...
-```
-
-Until PyPI allows creating new projects install it with the following command:
-
-```bash
-pip install 'python-odisi @ git@github.com:cristobaltapia/python-odisi.git'
+pip install python-odisi
 ```
 
 ## Usage
