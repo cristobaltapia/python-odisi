@@ -100,6 +100,14 @@ load = pl.read_csv("load_data.csv")
 d.interpolate(load.select(pl.col("time")), clip=True)
 ```
 
+### Export segment data
+
+The data of all segments can be exported to individual csv-files with the following code:
+
+```python
+d.export_segments_csv(prefix="my_experiment", path="data_folder")
+```
+
 ## Tests
 
 The package includes a test suite which should be run with pytest:
