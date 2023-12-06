@@ -313,6 +313,23 @@ class OdisiResult:
 
         return df_sync
 
+    def export_segments_csv(self, prefix, path="./", with_time=True):
+        """Export the data of each segment to a separate file.
+
+        Parameters
+        ----------
+        prefix : str
+            A prefix to use for the name of all exported files.
+        path : str ("./")
+            Root path for the exported files.
+
+        """
+        for si in self.segments:
+            di, xi = self.segment(si, with_time=with_time)
+            di.write_csv(f"{path}/{prefix}_{si}_data.csv")
+            df_x = pl.DataFrame({"x": xi})
+            df_x.write_csv(f"{path}/{prefix}_{si}_x.csv")
+
 
 class OdisiGagesResult(OdisiResult):
 
