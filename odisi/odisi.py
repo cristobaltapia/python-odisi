@@ -73,7 +73,7 @@ class OdisiResult:
         return list(self._segments.keys())
 
     def gage(self, label: str, with_time: bool = False) -> pl.DataFrame:
-        """Get data corresponding to the given gauge.
+        """Get data corresponding to the given gage.
 
         Parameters
         ----------
