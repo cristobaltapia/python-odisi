@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import numpy as np
 import polars as pl
 from numpy.typing import NDArray
@@ -6,7 +8,6 @@ from odisi.utils import timedelta_sec
 
 
 class OdisiResult:
-
     """Contains the data from the experiment.
 
     Attributes
@@ -69,6 +70,17 @@ class OdisiResult:
     @property
     def segments(self) -> list[str]:
         return list(self._segments.keys())
+
+    def shift_time(self, t: timedelta):
+        """Shift the datetime information by `t`.
+
+        Parameters
+        ----------
+        t : timedelta
+            Time shifted.
+
+        """
+        self._data = self._data.with_columns(pl.col("time") + t)
 
     def gage(self, label: str, with_time: bool = False) -> pl.DataFrame:
         """Get data corresponding to the given gage.
@@ -330,7 +342,6 @@ class OdisiResult:
 
 
 class OdisiGagesResult(OdisiResult):
-
     """Docstring ."""
 
     def __init__(
