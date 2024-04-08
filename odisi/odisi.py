@@ -33,7 +33,7 @@ class OdisiResult:
     def __init__(self, data, x, metadata):
         self._data: pl.DataFrame = data
         self._gages: dict[str, int] = {}
-        self._segments: dict[str, list[int]] = {}
+        self._segments: dict[str, tuple[int, int]] = {}
         self._x: NDArray = x
         self._channel: int = int(metadata["Channel"])
         self._rate: float = float(metadata["Measurement Rate per Channel"][:-3])
@@ -109,7 +109,7 @@ class OdisiResult:
             return self._data.select(pl.col(ix_gage))
 
     def segment(
-        self, label: str, with_time: bool = False
+        self, label: str, with_time: bool = False, x_along_sensor: bool = False
     ) -> tuple[pl.DataFrame, NDArray]:
         """Get data corresponding to the given segment.
 
@@ -119,6 +119,9 @@ class OdisiResult:
             Tha label of the segment.
         with_time : bool
             Whether a column with the time should also be returned in the dataframe.
+        x_along_sensor : bool
+            Whether the returned `x` should contain the original x-coordinates within
+            the fiber.
 
         Returns
         -------
@@ -136,8 +139,12 @@ class OdisiResult:
         s, e = self._segments[label]
         # Get the column name of the corresponding columns
         ix_segment = self._data.columns[s : e + 1]
-        # Generate x-axis (starting from zero)
-        x = self.x[s - 1 : e] - self.x[s - 1]
+
+        if x_along_sensor:
+            x = self.x[s - 1 : e]
+        else:
+            # Generate x-axis (starting from zero)
+            x = self.x[s - 1 : e] - self.x[s - 1]
 
         if with_time:
             return self._data.select(pl.col(["time", *ix_segment])), x

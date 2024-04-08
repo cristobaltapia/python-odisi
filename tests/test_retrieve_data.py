@@ -1,5 +1,4 @@
 from datetime import datetime
-import pdb
 
 import pytest
 from numpy.testing import assert_almost_equal, assert_array_equal
@@ -56,6 +55,13 @@ class TestSegments:
         p, x = DATA_GAGES.segment("All Gages", with_time=True)
         assert p[0, 1] == 3.7
         assert p[0, 0] == datetime.fromisoformat("2023-09-06 12:51:28.888946")
+
+    def test_x_coordinate_along_sensor(self):
+        p, x = DATA_GAGES.segment("B2", x_along_sensor=True)
+        d = p.to_numpy()[0, -5:]
+        r = [-1.3, -3, -0.9, -2.4, -0.2]
+        assert_array_equal(d, r)
+        assert x[0] == 13.1132
 
 
 class TestErrors:
