@@ -4,6 +4,7 @@ import numpy as np
 import polars as pl
 from numpy.typing import NDArray
 
+from odisi.time_callibration import calibrate_timedelta
 from odisi.utils import timedelta_sec
 
 
@@ -347,6 +348,70 @@ class OdisiResult:
             df_x = pl.DataFrame({"x": xi})
             df_x.write_csv(f"{path}/{prefix}_{si}_x.csv")
 
+    def synchronize_data(
+        self,
+        data: pl.DataFrame | None = None,
+        time: str | NDArray | None = None,
+        signal: NDArray | None = None,
+        segment: str | int = 0,
+        invert_signal: bool = False,
+    ) -> timedelta:
+        """Use a graphical interface to adjust the time from the external signal.
+
+        Parameters
+        ----------
+        data : pl.Dataframe | None (None)
+            Dataframe containing a column for the timestamp and another for the signal
+            to be interpolated. If given, then column name for the time should be given
+            in the parameters `time`.
+        time : str | NDArray | None (None)
+            If `data` is given, then this parameters takes the name of the column containing the timestamp to be considered for the interpolation. Otherwise,
+            this should be an array with the timestamp for the interpolation.
+        signal : NDArray | None (None)
+            If `data` is given, then this parameters is not needed. Otherwise, this
+            should be an array with the signal to be interpolated.
+        segment : str | int
+            If a `str`, then this is the name of a segment. If an `int`, then the n-th segment
+            of the list of segments will be used. Dafalt `segment=0`.
+        invert_signal : bool
+            Inverts the sign of the external luna data.
+
+        Returns
+        -------
+        timedelta
+
+        """
+        data_sensor = self._data
+
+        # Ensure the correct name for the column
+        if isinstance(data, pl.DataFrame):
+            data = data.rename({time: "time"})
+        # Convert time to polars DataFrame if needed
+        else:
+            data = pl.DataFrame({"time": time, "signal": signal})
+
+        if invert_signal:
+            m = -1
+        else:
+            m = 1
+
+        segment_id = segment if isinstance(segment, str) else self.segments[segment]
+
+        data_aux, _ = self.segment(segment_id)
+        # Get number of columns
+        n_col = data_aux.shape[1]
+        data_luna = data_aux[:, n_col // 2].to_numpy()
+
+        delta = calibrate_timedelta(
+            luna_data=data_luna * m,
+            luna_time=self.time,
+            ext_data=data.get_column("signal").to_numpy(),
+            ext_time=data.get_column("time").to_numpy(),
+            init_delta=timedelta(seconds=0),
+        )
+
+        return delta
+
 
 class OdisiGagesResult(OdisiResult):
     """Docstring ."""
@@ -356,7 +421,7 @@ class OdisiGagesResult(OdisiResult):
         data,
         x,
         gages: dict[str, int],
-        segments: dict[str, list[int]],
+        segments: dict[str, tuple[int, int]],
         metadata,
     ):
         """TODO: to be defined.
