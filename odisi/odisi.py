@@ -220,8 +220,8 @@ class OdisiResult:
         if relative_time:
             # Get initial timestamp from sensor data
             t_init = data[0, 0]
-            time = time.with_columns(
-                pl.col("time").map_elements(timedelta_sec).add(t_init)
+            time = time.select(
+                ((pl.col("time") * 1e6).cast(pl.Duration("us"))).add(t_init).alias("time")
             )
 
         # Clip the data if requested
@@ -289,7 +289,7 @@ class OdisiResult:
         data_sensor = self._data
 
         # Ensure the correct name for the column
-        if isinstance(data, pl.DataFrame):
+        if isinstance(data, pl.DataFrame) and isinstance(time, str):
             data = data.rename({time: "time"})
         # Convert time to polars DataFrame if needed
         else:
@@ -299,8 +299,11 @@ class OdisiResult:
         if relative_time:
             # Get initial timestamp from sensor data
             t_init = data_sensor[0, 0]
+            # data = data.with_columns(
+            #     pl.col("time").map_elements(timedelta_sec).add(t_init)
+            # )
             data = data.with_columns(
-                pl.col("time").map_elements(timedelta_sec).add(t_init)
+                ((pl.col("time") * 1e6).cast(pl.Duration("us"))).add(t_init).alias("time")
             )
 
         # Clip the data if requested

@@ -12,7 +12,7 @@ keywords = ["odisi", "reader", "import"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-polars = "^0.19.17"
+polars = "^1.5"
 numpy = "^1.26.2"
 matplotlib = "^3.8.4"
 
