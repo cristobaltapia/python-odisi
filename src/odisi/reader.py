@@ -83,16 +83,24 @@ def read_tsv(path: str | Path) -> OdisiResult:
         separator="\t",
         has_header=False,
     )
+    labels = pl.read_csv(
+        path,
+        skip_rows=n_meta + 1,
+        n_rows=1,
+        separator="\t",
+        has_header=True,
+    )
 
     # Get the x-coordinates
     x = t[-1, 3:].select(pl.all().cast(float)).to_numpy()[0]
 
     if with_gages:
         g = t[0, 3:].to_numpy()[0]
+        lb = labels.column[3:]
         # Get names and indices of gages
-        gages = get_gages(g)
+        gages = get_gages(lb)
         # Get names and indices of segments
-        segments = get_segments(g)
+        segments = get_segments(lb)
 
         result = OdisiGagesResult(
             data=df, x=x, gages=gages, segments=segments, metadata=metadata
