@@ -1,6 +1,5 @@
 import re
 from pathlib import Path
-from typing import Iterable
 
 import numpy as np
 import polars as pl
@@ -112,13 +111,13 @@ def read_tsv(path: str | Path) -> OdisiResult:
     return result
 
 
-def get_gages(x: Iterable[str]) -> dict[str, int]:
+def get_gages(all_labels: list[str]) -> dict[str, int]:
     """Get the names and indices of gages.
 
     Parameters
     ----------
-    x : Iterable
-        The row containing the names of gages and segments.
+    all_labels : list
+        The list of gage/segment names from the original tsv file.
 
     Returns
     -------
@@ -135,7 +134,7 @@ def get_gages(x: Iterable[str]) -> dict[str, int]:
     gages = {}
     # Match each column name against the pattern until no match is found (the
     # gages are always at the beginning, followed by the segments).
-    for ix, k in enumerate(x):
+    for ix, k in enumerate(all_labels):
         m = pattern_id.match(k)
         if m:
             # The '+ 1' is needed to consider the first column used for the
@@ -147,12 +146,13 @@ def get_gages(x: Iterable[str]) -> dict[str, int]:
     return gages
 
 
-def get_segments(x: Iterable) -> dict[str, tuple[int, int]]:
+def get_segments(all_labels: list[str]) -> dict[str, tuple[int, int]]:
     """Get the names and indices of segments.
 
     Parameters
     ----------
-    x : Iterable
+    all_labels : list[str]
+        The list of gage/segment names from the original tsv file.
 
     Returns
     -------
@@ -167,7 +167,7 @@ def get_segments(x: Iterable) -> dict[str, tuple[int, int]]:
 
     # Match each column name against the pattern (returns an iterator of Match
     # objects)
-    ch_match = (pattern_id.match(k) for k in x)
+    ch_match = (pattern_id.match(k) for k in all_labels)
 
     # Now get the individual id's
     labels = np.unique([k.group(1) for k in ch_match if k]).tolist()
@@ -178,7 +178,7 @@ def get_segments(x: Iterable) -> dict[str, tuple[int, int]]:
         # Create a new pattern to find the indices of the current segment
         pattern_ix = re.compile(rf"{s}(?=\[\d+\])")
         # Match each column against the pattern
-        match = (pattern_ix.match(k) for k in x)
+        match = (pattern_ix.match(k) for k in all_labels)
         # Retrieve the indices corresponding to the current segment
         s_ix = [int(k) + 1 for k, m in enumerate(match) if m]
         segments[s] = (s_ix[0], s_ix[-1])
