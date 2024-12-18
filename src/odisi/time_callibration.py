@@ -197,7 +197,6 @@ def calibrate_timedelta(
 
     ax_luna.legend(loc="upper right")
     ax_load.legend(loc="upper left")
-    ax_load.set_ylim(bottom=0)
 
     # Only show the interactive plot if we are not in a pytest session
     if not odisi._called_from_test:
