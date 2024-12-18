@@ -83,7 +83,7 @@ class OdisiResult:
         """
         self._data = self._data.with_columns(pl.col("time") + t)
 
-    def gage(self, label: str, with_time: bool = False) -> pl.DataFrame:
+    def get_gage(self, label: str, with_time: bool = False) -> pl.DataFrame:
         """Get data corresponding to the given gage.
 
         Parameters
@@ -109,7 +109,7 @@ class OdisiResult:
         else:
             return self._data.select(pl.col(ix_gage))
 
-    def segment(
+    def get_segment(
         self, label: str, with_time: bool = False, x_along_sensor: bool = False
     ) -> tuple[pl.DataFrame, NDArray]:
         """Get data corresponding to the given segment.
@@ -346,7 +346,7 @@ class OdisiResult:
 
         """
         for si in self.segments:
-            di, xi = self.segment(si, with_time=with_time)
+            di, xi = self.get_segment(si, with_time=with_time)
             di.write_csv(f"{path}/{prefix}_{si}_data.csv")
             df_x = pl.DataFrame({"x": xi})
             df_x.write_csv(f"{path}/{prefix}_{si}_x.csv")
@@ -400,7 +400,7 @@ class OdisiResult:
 
         segment_id = segment if isinstance(segment, str) else self.segments[segment]
 
-        data_aux, _ = self.segment(segment_id)
+        data_aux, _ = self.get_segment(segment_id)
         # Get number of columns
         n_col = data_aux.shape[1]
         data_luna = data_aux[:, n_col // 2].to_numpy()

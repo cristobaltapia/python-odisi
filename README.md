@@ -30,9 +30,9 @@ gages = d.gages
 # List all segments
 segments = d.segments
 # Get the data for a specific gage, e.g. with the label 'A'
-d_gage = d.gage("A")
+d_gage = d.get_gage("A")
 # Get the data for a specific segment, e.g. with the label 'Seg-1'
-d_seg, x_seg = d.segment("Seg-1")
+d_seg, x_seg = d.get_segment("Seg-1")
 ```
 
 ### Interpolation of data
@@ -55,7 +55,7 @@ Then you should be able to plot your data against the measured load:
 ```python
 import matplotlib.pyplot as plt
 
-d_gage = d.gage("A")
+d_gage = d.get_gage("A")
 # Assume that the load data is in column 'load'
 a_load = load.select(pl.col("load")).to_series()
 
@@ -77,7 +77,7 @@ Then you should be able to plot your data against the measured load:
 ```python
 import matplotlib.pyplot as plt
 
-d_gage = d.gage("A")
+d_gage = d.get_gage("A")
 # Assume that the load data is in column 'load'
 a_load = new_load.select(pl.col("load")).to_series()
 
